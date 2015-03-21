@@ -13,34 +13,53 @@ module.exports = function(grunt) {
     // Task configuration.
     copy: {
       main: {
-        files: [
-          {expand: true, src: ['vendor/**'], dest: 'dist/', cwd: 'app/'},
-          {expand: true, src: ['*.html'], dest: 'dist/', cwd: 'app/'}
-        ]
+        files: [{
+          expand: true,
+          src: ['vendor/**'],
+          dest: 'dist/',
+          cwd: 'app/'
+        }, {
+          expand: true,
+          src: ['*.html'],
+          dest: 'dist/',
+          cwd: 'app/'
+        }]
       },
       cdn: {
         src: 'dist/webperf.html',
         dest: 'dist/standalone/webperf.html',
         options: {
-            // Read webperf.html and replace local script and link sources with their CDN equivalents.
-            // These are defined in the project.json file (vendor property)
-            process: function(content) {
-              grunt.log.write("\nCreating dist/standalone/webperf.html with CDN info from package.json vendor data\n");
-              // loop through each vendor library in package.json
-              grunt.config.get('pkg').vendor.map( function(vendor) {
-                var from = '(?:src|href)="(.*'+vendor.lib+'.*)"';
-                var fromre = new RegExp(from, "g");
-                var match;
-                while ((match = fromre.exec(content)) !== null) {
-                  var local = RegExp.$1;
-                  grunt.log.write("Replacing "+ local +" with "+ vendor.cdn +"\n");
-                  var search = new RegExp(local, "g");
-                  content = content.replace(search, vendor.cdn);
-                }
-              });
-              return content;
-            }
+          // Read webperf.html and replace local script and link sources with their CDN equivalents.
+          // These are defined in the project.json file (vendor property)
+          process: function(content) {
+            grunt.log.write("\nCreating dist/standalone/webperf.html with CDN info from package.json vendor data\n");
+            // loop through each vendor library in package.json
+            grunt.config.get('pkg').vendor.map(function(vendor) {
+              var from = '(?:src|href)="(.*' + vendor.lib + '.*)"';
+              var fromre = new RegExp(from, "g");
+              var match;
+              while ((match = fromre.exec(content)) !== null) {
+                var local = RegExp.$1;
+                grunt.log.write("Replacing " + local + " with " + vendor.cdn + "\n");
+                var search = new RegExp(local, "g");
+                content = content.replace(search, vendor.cdn);
+              }
+            });
+            return content;
+          }
         }
+      }
+    },
+    htmllint: {
+      all: {
+        options: {
+          ignore: [
+            /Attribute “(?:ng|sb)-[a-z-]+” not allowed/,
+            /Attribute “on” not allowed on element “div”/,
+            /\{\{.*\}\}.*: not a URL code point/
+          ]
+        },
+        src: ["app/**/*.html", "tests/**/*.html"]
       }
     },
     concat: {
@@ -108,6 +127,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-html');
 
   // Default task.
   grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'copy']);
