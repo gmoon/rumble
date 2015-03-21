@@ -239,6 +239,9 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       $scope.battle       = config;
       $scope.battle.left  = $scope.battle.contestants[0];
       $scope.battle.right = $scope.battle.contestants[1];
+      $scope.battle.contestants.map(function(c) {
+        c.url = $sce.trustAsResourceUrl(c.url);
+      });
       $scope.$digest();
       $scope.resetFight();
       $scope.fight();
