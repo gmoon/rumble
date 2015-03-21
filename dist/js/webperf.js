@@ -1,4 +1,4 @@
-/*! webperf - v1.0 - 2015-03-20
+/*! webperf - v1.0.0 - 2015-03-21
 * https://github.com/gmoon/epicbattles
 * Copyright (c) 2015 George Moon; Licensed Apache 2.0 */
 var documentDomainError;

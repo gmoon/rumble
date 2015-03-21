@@ -1,0 +1,182 @@
+<!doctype html>
+<html ng-app="webPerformanceApp">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  	<title>Epic Battles</title>
+  	<script>
+  		var documentDomainError; 
+  		try { 
+  			//document.domain = "gmoon.github.io"; 
+  		} catch(error) {
+  			documentDomainError = error;
+  		}
+	</script>
+
+	<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.3.13/angular.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="//gmoon.github.io/webperf/js/webperf.js"></script>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"></link>
+
+	<style>
+		.metricValueLeft { text-align: right; width: 100px; }
+ 		.metricValueRight { text-align: left; width: 100px; }
+ 		.metricLabel { text-align: center; width: 100px; }
+ 		.center { float: none; margin-left: auto; margin-right: auto; }
+ 		h3.stage { font-weight: 200 }
+ 		div.iframe { float:left; }
+ 		.dropdown-menu li:hover { cursor: pointer; }
+ 		.vertical-align { display: flex; align-items:center;}
+ 	</style>
+  </head>
+  <body>
+    <div ng-controller="WebPerformanceController" class="container text-center">
+		<div class="container">
+
+	    	<h1>{{battle.headline}}</h1>
+
+	      	<div class="jumbotron">
+	      		<div class="row vertical-align">
+	      			<div class="col-md-4 text-right">
+						<h2>{{battle.left.headlineLabel}}</h2>
+					</div>
+					<div class="col-md-4">
+						is
+						<h2>{{ pctSlower | abs | percentage }}<br/>{{ pctSlower >= 0 && 'faster' || 'slower'}}</h2>
+						than
+					</div>
+					<div class="col-md-4 text-left">
+						<h2>{{battle.right.headlineLabel}}</h2>
+					</div>
+				</div>
+
+			</div>
+
+			<div class="alert alert-danger" role="alert" ng-repeat="error in errors">
+				<span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+				<span>{{error.message}}</span>
+				<span class="badge">{{error.count}}</span>
+				<button type="button" class="close" aria-label="Close" ng-click="clearErrorMessage($index)"><span class="glyphicon glyphicon-remove-sign"></span></button>
+			</div>   
+
+		</div>
+
+		<div class="container">
+
+			<div class="row">
+				<div class="col-md-4 text-right">
+					<ul class="nav">
+						<li class="dropdown">
+							<div>
+								<h3>
+									<button class="btn-link dropdown-toggle text-right" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="dLabel">
+										<li ng-repeat="contestant in battle.contestants">
+											<a data-ng-click="promoteFighter('left', $index)">
+												<h4>{{contestant.label}}</h4>
+												<small>{{contestant.labelCaption}}</small>
+											</a>
+										</li>
+									</ul>								
+									{{ battle.left.label }}
+								</h3>
+							</div>
+						</li>
+					</ul>
+					<small><a href="{{ battle.left.url }}">{{ battle.left.labelCaption }}</a></small>
+				</div>
+				<div class="col-md-4">
+					<h3>vs.</h3>
+					<button type="button" data-ng-click="toggleFight()" aria-hidden="true">
+						<span title="{{isStarted() ? 'pause sampling' : 'start sampling'}}" ng-class="{true: 'glyphicon glyphicon-pause', false:'glyphicon glyphicon-play'}[isStarted()]"></span>
+					</button>
+					<button type="button" data-ng-click="resetFight()" aria-hidden="true">
+						<span title="reset counters" class="glyphicon glyphicon-refresh"></span>
+					</button>
+				</div>
+				<div class="col-md-4 text-left">
+					<ul class="nav">
+						<li class="dropdown">
+							<div>
+								<h3>
+									{{ battle.right.label }}
+									<button class="btn-link dropdown-toggle text-left" data-toggle="dropdown">
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu dropdown-menu-left" role="menu" aria-labelledby="dLabel">
+										<li ng-repeat="contestant in battle.contestants">
+											<a data-ng-click="promoteFighter('right', $index)">
+												<h4>{{contestant.label}}</h4>
+												<small>{{contestant.labelCaption}}</small>
+											</a>
+										</li>
+									</ul>								
+								</h3>
+							</div>
+						</li>
+					</ul>
+					<small><a href="{{ battle.left.url }}">{{ battle.right.labelCaption }}</a></small>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4 text-right">
+					<h3>{{ stats[battle.left.id]["total"]["count"] }}</h3>
+				</div>
+				<div class="col-md-4">
+					<h3 class="stage">samples</h3>
+				</div>
+				<div class="col-md-4 text-left">
+					<h3>{{ stats[battle.right.id]["total"]["count"] }}</h3>	
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4 text-right">
+					
+				</div>
+				<div class="col-md-4">
+					<span class="stage">(every {{ battle.samplingInterval / 1000 }} seconds)</span>
+				</div>
+				<div class="col-md-4 text-left">
+					
+				</div>
+			</div>
+
+			<div ng-repeat="stage in stages" ng-hide="stats[battle.right.id]['total']['count'] <= 0" class="ng-hide">
+				<div class="row" ng-repeat="metric in visibleMetrics">
+					<div class="col-md-4 text-right" ng-switch on="$index===0">
+						<h3 ng-switch-when="true">{{ stats[battle.left.id][stage][metric]}}</h3>
+						<span ng-switch-default>{{stats[battle.left.id][stage][metric]}}</span>
+					</div>
+					<div class="col-md-4" ng-switch on="$index===0">
+						<h3 class="stage" ng-switch-when="true">{{ stage }}</h3>
+						<span class="stage" ng-switch-default>{{metric}}</span>
+					</div>
+					<div class="col-md-4 text-left" ng-switch on="$index===0">
+						<h3 ng-switch-when="true">{{ stats[battle.right.id][stage][metric]}}</h3>
+						<span ng-switch-default>{{stats[battle.right.id][stage][metric]}}</span>
+					</div>
+				</div>
+			</div>
+
+		</div>
+      <hr>
+	  <div class="iframe" ng-repeat="contestant in battle.contestants">
+	  	<label>{{ contestant.label }} Content</label><br/>
+	  	<iframe id="{{ contestant.id }}" ng-src="{{contestant.url}}" sb-load="onIframeLoad($event)" style="display:none">
+	  	</iframe>
+	  </div>
+    </div>
+    <hr>
+    <div class="container text-center">
+    	<label><a href="https://developer.mozilla.org/en-US/docs/Navigation_timing">Navigation Timing</a></label>
+		<img class="img-responsive center-block" src="https://www.w3.org/TR/navigation-timing/timing-overview.png" alt="performance.timing">
+	</div>
+	</body>
+</html>

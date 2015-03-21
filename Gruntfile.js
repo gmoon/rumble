@@ -1,4 +1,4 @@
-/*global module:false*/
+/*global module:false */
 module.exports = function(grunt) {
 
   // Project configuration.
@@ -11,23 +11,56 @@ module.exports = function(grunt) {
       '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
       ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
     // Task configuration.
+    copy: {
+      main: {
+        files: [
+          {expand: true, src: ['vendor/**'], dest: 'dist/', cwd: 'app/'},
+          {expand: true, src: ['*.html'], dest: 'dist/', cwd: 'app/'}
+        ]
+      },
+      cdn: {
+        src: 'dist/webperf.html',
+        dest: 'dist/standalone/webperf.html',
+        options: {
+            // Read webperf.html and replace local script and link sources with their CDN equivalents.
+            // These are defined in the project.json file (vendor property)
+            process: function(content) {
+              grunt.log.write("\nCreating dist/standalone/webperf.html with CDN info from package.json vendor data\n");
+              // loop through each vendor library in package.json
+              grunt.config.get('pkg').vendor.map( function(vendor) {
+                var from = '(?:src|href)="(.*'+vendor.lib+'.*)"';
+                var fromre = new RegExp(from, "g");
+                var match;
+                while ((match = fromre.exec(content)) !== null) {
+                  var local = RegExp.$1;
+                  grunt.log.write("Replacing "+ local +" with "+ vendor.cdn +"\n");
+                  var search = new RegExp(local, "g");
+                  content = content.replace(search, vendor.cdn);
+                }
+              });
+              return content;
+            }
+        }
+      }
+    },
     concat: {
       options: {
         banner: '<%= banner %>',
         stripBanners: true
       },
       dist: {
-        src: ['lib/js/*.js'],
-        dest: 'dist/<%= pkg.name %>.js'
+        src: ['app/js/*.js'],
+        dest: 'dist/js/<%= pkg.name %>.js'
       }
     },
     uglify: {
       options: {
-        banner: '<%= banner %>'
+        banner: '<%= banner %>',
+        sourceMap: true
       },
       dist: {
         src: '<%= concat.dist.dest %>',
-        dest: 'dist/<%= pkg.name %>.min.js'
+        dest: 'dist/js/<%= pkg.name %>.min.js'
       }
     },
     jshint: {
@@ -49,8 +82,8 @@ module.exports = function(grunt) {
       gruntfile: {
         src: 'Gruntfile.js'
       },
-      lib_test: {
-        src: ['lib/**/*.js', 'test/**/*.js']
+      app_test: {
+        src: ['app/js/*.js', 'test/**/*.js']
       }
     },
     qunit: {
@@ -63,7 +96,7 @@ module.exports = function(grunt) {
       },
       lib_test: {
         files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:lib_test', 'jshint:lib_test', 'qunit']
+        tasks: ['jshint:lib_test', 'jshint:app_test', 'qunit']
       }
     }
   });
@@ -74,8 +107,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-qunit');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-copy');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'concat', 'uglify']);
+  grunt.registerTask('default', ['jshint', 'concat', 'uglify', 'copy']);
 
 };
