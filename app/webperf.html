@@ -168,13 +168,14 @@
   					</div>
   				</div>
   			</div>
-
   		</div>
   		<hr>
-  		<div class="iframe" ng-repeat="contestant in battle.contestants">
-  			<label>{{ contestant.label }} Content</label><br/>
-  			<iframe id="{{contestant.id}}" ng-src="{{contestant.url}}" sb-load="onIframeLoad($event)" style="display:none">
-  			</iframe>
+  		<div class="row">
+	  		<div class="iframe" ng-repeat="contestant in battle.contestants">
+	  			<label>{{ contestant.label }} Content</label><br/>
+	  			<iframe id="{{contestant.id}}" ng-src="{{contestant.url}}" sb-load="onIframeLoad($event)" style="display:none">
+	  			</iframe>
+	  		</div>
   		</div>
 	  	<hr>
 	  	<div class="container text-center">
