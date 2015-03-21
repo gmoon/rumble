@@ -3,7 +3,7 @@
 // parse URL params
 // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
 var urlParams;
-window.onpopstate = function () {
+var parseParams = function () {
     var match,
     pl     = /\+/g,  // Regex for replacing addition symbol with a space
     search = /([^&=]+)=?([^&]*)/g,
@@ -14,6 +14,9 @@ window.onpopstate = function () {
       urlParams[decode(match[1])] = decode(match[2]);
     }
 };
+
+window.onpopstate = parseParams;
+parseParams();
 
 var documentDomainError;
 var config;
@@ -235,8 +238,11 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       $scope.battle       = config;
       $scope.battle.left  = $scope.battle.contestants[0];
       $scope.battle.right = $scope.battle.contestants[1];
+      $scope.$digest();
       $scope.resetFight();
-      $scope.fight();      
+      $scope.fight();
+      $("#splash").toggleClass("hide");
+      $("#app").toggleClass("hide");
     });
 
     configXHR.fail(function() {

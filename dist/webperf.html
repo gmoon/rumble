@@ -6,20 +6,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Epic Battles</title>
 	<script>
-  		// parse URL params
-  		// http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-  		var urlParams;
-		(window.onpopstate = function () {
-    		var match,
-        	pl     = /\+/g,  // Regex for replacing addition symbol with a space
-        	search = /([^&=]+)=?([^&]*)/g,
-        	decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-        	query  = window.location.search.substring(1);
-    		urlParams = {};
-    		while (match = search.exec(query))
-       			urlParams[decode(match[1])] = decode(match[2]);
-		})();
-		
 		var documentDomainError; 
 		try { 
   			//document.domain = "gmoon.github.io"; 
@@ -27,7 +13,6 @@
   			documentDomainError = error;
   		}
   	</script>
-
   	<script src="vendor/js/jquery-1.11.2.min.js"></script>
   	<script src="vendor/js/angular-1.3.13.min.js"></script>
   	<script src="vendor/js/angular-sanitize-1.3.13.min.js"></script>
@@ -44,10 +29,15 @@
   		div.iframe { float:left; }
   		.dropdown-menu li:hover { cursor: pointer; }
   		.vertical-align { display: flex; align-items:center;}
+  		.hide { display: none; }
   	</style>
   </head>
   <body>
-  	<div ng-controller="WebPerformanceController" class="container text-center">
+  	<div id="splash" class="container text-center">
+  		<h3>Loading...</h3>
+  	</div>
+  	<!-- the rest of our app -->
+  	<div id="app" ng-controller="WebPerformanceController" class="hide container text-center">
   		<div class="container">
 
   			<h1>{{battle.headline}}</h1>
@@ -186,11 +176,12 @@
   			<iframe id="{{contestant.id}}" ng-src="{{contestant.url}}" sb-load="onIframeLoad($event)" style="display:none">
   			</iframe>
   		</div>
+	  	<hr>
+	  	<div class="container text-center">
+	  		<label><a href="https://developer.mozilla.org/en-US/docs/Navigation_timing">Navigation Timing</a></label>
+	  		<img class="img-responsive center-block" src="https://www.w3.org/TR/navigation-timing/timing-overview.png" alt="performance.timing">
+	  	</div>
   	</div>
-  	<hr>
-  	<div class="container text-center">
-  		<label><a href="https://developer.mozilla.org/en-US/docs/Navigation_timing">Navigation Timing</a></label>
-  		<img class="img-responsive center-block" src="https://www.w3.org/TR/navigation-timing/timing-overview.png" alt="performance.timing">
-  	</div>
+
   </body>
   </html>
