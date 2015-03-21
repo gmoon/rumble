@@ -1,33 +1,15 @@
 /*! webperf - v1.0.0 - 2015-03-21
 * https://github.com/gmoon/epicbattles
 * Copyright (c) 2015 George Moon; Licensed Apache 2.0 */
-// parse URL params
-// http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-var urlParams;
-var parseParams = function () {
-    var match,
-    pl     = /\+/g,  // Regex for replacing addition symbol with a space
-    search = /([^&=]+)=?([^&]*)/g,
-    decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
-    query  = window.location.search.substring(1);
-    urlParams = {};
-    while (match = search.exec(query)) {
-      urlParams[decode(match[1])] = decode(match[2]);
-    }
-};
-
-window.onpopstate = parseParams;
-parseParams();
-
 var documentDomainError;
-var config;
-var configXHR;
+//var config;
+//var configXHR;
 
-if (urlParams.config.length > 0) {
-  configXHR = $.get(urlParams.config, function(data) {
-    config = JSON.parse(data);
-  });  
-}
+// if (urlParams.config.length > 0) {
+//   configXHR = $.get(urlParams.config, function(data) {
+//     config = JSON.parse(data);
+//   });  
+// }
 
 angular.module('webPerformanceApp', ['ngSanitize'])
   // from http://stackoverflow.com/questions/17547917/angularjs-image-onload-event
@@ -61,7 +43,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       return Math.abs(input);
     };
   }])
-  .controller('WebPerformanceController', ['$sce', '$scope', '$interval', function($sce, $scope, $interval) {
+  .controller('WebPerformanceController', ['$sce', '$scope', '$interval', 'webPerfConfig', function($sce, $scope, $interval, webPerfConfig) {
     $scope.stages = ['total', 'redirect', 'appCache', 'dns', 'tcp', 'ssl', 'request', 'response', 'processing', 'onLoad'];
     $scope.metrics = ['min', 'max', 'avg', 'stdev', 'current', 'count', 'sum'];
     $scope.visibleMetrics = ['current', 'min', 'avg', 'max'];
@@ -77,13 +59,13 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     //   },
     //   'contestants': [{
     //     headlineLabel: 'TodoMVC AngularJS',
-    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/angularjs/'),
+    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/webperf/todomvc/examples/angularjs/'),
     //     id: 'angularjs',
     //     label: 'AngularJS',
     //     labelCaption: 'angular',
     //   }, {
     //     headlineLabel: 'TodoMVC EmberJS',
-    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/emberjs/'),
+    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/webperf/todomvc/examples/emberjs/'),
     //     id: 'emberjs',
     //     label: 'EmberJS',
     //     labelCaption: 'ember',
@@ -157,20 +139,28 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       if (angular.isDefined(stop)) {
         return;
       }
-      $scope.reload();
-      stop = $interval(function() {
-        $scope.reload();
-      }, $scope.battle.samplingInterval);
-    };
-
-    $scope.reload = function() {
         try {
           $scope.battle.contestants.forEach(function(i) {
             $("#" + i.id)[0].contentWindow.location.reload();
           });
         } catch (error) {
           $scope.addError(error);
+          console.log("error: "+error);
         }
+      stop = $interval(function() {
+        try {
+          $scope.battle.contestants.forEach(function(i) {
+            $("#" + i.id)[0].contentWindow.location.reload();
+          });
+        } catch (error) {
+          $scope.addError(error);
+          console.log("error: "+error);
+        }
+      }, $scope.battle.samplingInterval);
+    };
+
+    $scope.reload = function() {
+
     };
 
     $scope.recalcPercentage = function() {
@@ -235,22 +225,69 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       $scope.addError(documentDomainError);
     }
 
-    configXHR.done(function() {
-      $scope.battle       = config;
-      $scope.battle.left  = $scope.battle.contestants[0];
-      $scope.battle.right = $scope.battle.contestants[1];
-      $scope.battle.contestants.map(function(c) {
-        c.url = $sce.trustAsResourceUrl(c.url);
+    webPerfConfig.getConfig()
+      .then(
+        function(data){
+          $scope.battle = data;
+          $scope.battle.contestants.map(function(c) {
+            c.url = $sce.trustAsResourceUrl(c.url);
+          });
+          $scope.battle.left  = $scope.battle.contestants[0];
+          $scope.battle.right = $scope.battle.contestants[1];
+          $scope.resetFight();
+          $scope.fight();
+          $("#splash").toggleClass("hide");
+          $("#app").toggleClass("hide");
+        }, 
+        function (data) {
+          console.log("error: "+data);
+        }
+      );
+
+//    configXHR.done(function() {
+      //$scope.battle       = config;
+      //$scope.battle.contestants.map(function(c) {
+      //  c.url = $sce.trustAsResourceUrl(c.url);
+      //});
+      //$scope.$digest();
+//    });
+
+    //configXHR.fail(function() {
+    //  $scope.addError("unable to retrieve config from "+urlParams.config+": "+configXHR.error());
+    //});
+
+  }])
+  .factory('webPerfConfig', function($http, $q) {
+    var service = {};
+    var _urlParams = {};
+
+    var parseParams = function() {
+      // parse URL params
+      // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+      var match,
+      pl     = /\+/g,  // Regex for replacing addition symbol with a space
+      search = /([^&=]+)=?([^&]*)/g,
+      decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+      query  = window.location.search.substring(1);
+      while (match = search.exec(query)) {
+        _urlParams[decode(match[1])] = decode(match[2]);
+      }
+    };
+    
+    service.getConfig = function() {
+      parseParams();
+      var deferred = $q.defer();
+      $http({
+        "method": "GET",
+        "url": _urlParams["config"]
+      }).success(function(data) {
+        deferred.resolve(data);
+      }).error(function(data) {
+        deferred.reject(data);
       });
-      $scope.$digest();
-      $scope.resetFight();
-      $scope.fight();
-      $("#splash").toggleClass("hide");
-      $("#app").toggleClass("hide");
-    });
+      return deferred.promise;
+    };
 
-    configXHR.fail(function() {
-      console.log("config get failed: "+configXHR.error());
-    });
+    return service;
+  });
 
-  }]);
