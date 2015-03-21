@@ -1,7 +1,30 @@
 /*! webperf - v1.0.0 - 2015-03-21
 * https://github.com/gmoon/epicbattles
 * Copyright (c) 2015 George Moon; Licensed Apache 2.0 */
+// parse URL params
+// http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+var urlParams;
+window.onpopstate = function () {
+    var match,
+    pl     = /\+/g,  // Regex for replacing addition symbol with a space
+    search = /([^&=]+)=?([^&]*)/g,
+    decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+    query  = window.location.search.substring(1);
+    urlParams = {};
+    while (match = search.exec(query)) {
+      urlParams[decode(match[1])] = decode(match[2]);
+    }
+};
+
 var documentDomainError;
+var config;
+var configXHR;
+
+if (urlParams.config.length > 0) {
+  configXHR = $.get(urlParams.config, function(data) {
+    config = JSON.parse(data);
+  });  
+}
 
 angular.module('webPerformanceApp', ['ngSanitize'])
   // from http://stackoverflow.com/questions/17547917/angularjs-image-onload-event
@@ -42,29 +65,29 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     $scope.errors = [];
     $scope.errorsLookup = {};
 
-    $scope.battle = {
-      'samplingInterval': 10000, // milliseconds
-      'headline': 'When serving the same TodoMVC app...',
-      'scoring': {
-        stage: 'total',
-        metric: 'current'
-      },
-      'contestants': [{
-        headlineLabel: 'TodoMVC AngularJS',
-        url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/angularjs/'),
-        id: 'angularjs',
-        label: 'AngularJS',
-        labelCaption: 'angular',
-      }, {
-        headlineLabel: 'TodoMVC EmberJS',
-        url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/emberjs/'),
-        id: 'emberjs',
-        label: 'EmberJS',
-        labelCaption: 'ember',
-      }],
-      'left': undefined,
-      'right': undefined,
-    };
+    // $scope.battle = {
+    //   'samplingInterval': 10000, // milliseconds
+    //   'headline': 'When serving the same TodoMVC app...',
+    //   'scoring': {
+    //     stage: 'total',
+    //     metric: 'current'
+    //   },
+    //   'contestants': [{
+    //     headlineLabel: 'TodoMVC AngularJS',
+    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/angularjs/'),
+    //     id: 'angularjs',
+    //     label: 'AngularJS',
+    //     labelCaption: 'angular',
+    //   }, {
+    //     headlineLabel: 'TodoMVC EmberJS',
+    //     url: $sce.trustAsResourceUrl('http://gmoon.github.io/todomvc/examples/emberjs/'),
+    //     id: 'emberjs',
+    //     label: 'EmberJS',
+    //     labelCaption: 'ember',
+    //   }],
+    //   'left': undefined,
+    //   'right': undefined,
+    // };
 
     var stop;
 
@@ -131,7 +154,13 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       if (angular.isDefined(stop)) {
         return;
       }
+      $scope.reload();
       stop = $interval(function() {
+        $scope.reload();
+      }, $scope.battle.samplingInterval);
+    };
+
+    $scope.reload = function() {
         try {
           $scope.battle.contestants.forEach(function(i) {
             $("#" + i.id)[0].contentWindow.location.reload();
@@ -139,7 +168,6 @@ angular.module('webPerformanceApp', ['ngSanitize'])
         } catch (error) {
           $scope.addError(error);
         }
-      }, $scope.battle.samplingInterval);
     };
 
     $scope.recalcPercentage = function() {
@@ -203,9 +231,17 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     if (angular.isDefined(documentDomainError)) {
       $scope.addError(documentDomainError);
     }
-    $scope.battle.left = $scope.battle.contestants[0];
-    $scope.battle.right = $scope.battle.contestants[1];
-    $scope.resetFight();
-    $scope.fight();
+
+    configXHR.done(function() {
+      $scope.battle       = config;
+      $scope.battle.left  = $scope.battle.contestants[0];
+      $scope.battle.right = $scope.battle.contestants[1];
+      $scope.resetFight();
+      $scope.fight();      
+    });
+
+    configXHR.fail(function() {
+      console.log("config get failed: "+configXHR.error());
+    });
 
   }]);
