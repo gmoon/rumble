@@ -1,4 +1,4 @@
-/* global angular:false, $:false, console:false */
+/* global angular:false, $:false */
 
 var documentDomainError;
 

@@ -2,14 +2,6 @@
 * https://github.com/gmoon/epicbattles
 * Copyright (c) 2015 George Moon; Licensed Apache 2.0 */
 var documentDomainError;
-//var config;
-//var configXHR;
-
-// if (urlParams.config.length > 0) {
-//   configXHR = $.get(urlParams.config, function(data) {
-//     config = JSON.parse(data);
-//   });  
-// }
 
 angular.module('webPerformanceApp', ['ngSanitize'])
   // from http://stackoverflow.com/questions/17547917/angularjs-image-onload-event
@@ -43,12 +35,11 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       return Math.abs(input);
     };
   }])
-  .controller('WebPerformanceController', ['$sce', '$scope', '$interval', 'webPerfConfig', function($sce, $scope, $interval, webPerfConfig) {
+  .controller('WebPerformanceController', ['$sce', '$scope', '$interval', 'webPerfConfig', 'wErrors', function($sce, $scope, $interval, webPerfConfig, wErrors) {
     $scope.stages = ['total', 'redirect', 'appCache', 'dns', 'tcp', 'ssl', 'request', 'response', 'processing', 'onLoad'];
     $scope.metrics = ['min', 'max', 'avg', 'stdev', 'current', 'count', 'sum'];
     $scope.visibleMetrics = ['current', 'min', 'avg', 'max'];
-    $scope.errors = [];
-    $scope.errorsLookup = {};
+    $scope.errors = wErrors.getErrors();
 
     // $scope.battle = {
     //   'samplingInterval': 10000, // milliseconds
@@ -144,8 +135,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
             $("#" + i.id)[0].contentWindow.location.reload();
           });
         } catch (error) {
-          $scope.addError(error);
-          console.log("error: "+error);
+          wErrors.addError(error);
         }
       stop = $interval(function() {
         try {
@@ -153,8 +143,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
             $("#" + i.id)[0].contentWindow.location.reload();
           });
         } catch (error) {
-          $scope.addError(error);
-          console.log("error: "+error);
+          wErrors.addError(error);
         }
       }, $scope.battle.samplingInterval);
     };
@@ -197,22 +186,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     };
 
     $scope.clearErrorMessage = function(index) {
-      $scope.errors.splice(index, 1);
-    };
-
-    $scope.addError = function(error) {
-      // look for this error message
-      var result = $.grep($scope.errors, function(e) {
-        return e.message === error.toString();
-      });
-      if (result.length === 0) { // add the error to the list
-        $scope.errors.push({
-          message: error.toString(),
-          count: 1
-        });
-      } else { // increment the count
-        result[0].count++;
-      }
+      wErrors.clearErrorMessage(index);
     };
 
     $scope.promoteFighter = function(which, index) {
@@ -222,7 +196,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
 
     // register 
     if (angular.isDefined(documentDomainError)) {
-      $scope.addError(documentDomainError);
+      wErrors.addError(documentDomainError);
     }
 
     webPerfConfig.getConfig()
@@ -236,26 +210,13 @@ angular.module('webPerformanceApp', ['ngSanitize'])
           $scope.battle.right = $scope.battle.contestants[1];
           $scope.resetFight();
           $scope.fight();
-          $("#splash").toggleClass("hide");
-          $("#app").toggleClass("hide");
+          //$("#splash").toggleClass("hide");
+          //$("#app").toggleClass("hide");
         }, 
-        function (data) {
-          console.log("error: "+data);
+        function(data) {
+          wErrors.addError(data);
         }
       );
-
-//    configXHR.done(function() {
-      //$scope.battle       = config;
-      //$scope.battle.contestants.map(function(c) {
-      //  c.url = $sce.trustAsResourceUrl(c.url);
-      //});
-      //$scope.$digest();
-//    });
-
-    //configXHR.fail(function() {
-    //  $scope.addError("unable to retrieve config from "+urlParams.config+": "+configXHR.error());
-    //});
-
   }])
   .factory('webPerfConfig', function($http, $q) {
     var service = {};
@@ -282,10 +243,38 @@ angular.module('webPerformanceApp', ['ngSanitize'])
         "url": _urlParams["config"]
       }).success(function(data) {
         deferred.resolve(data);
-      }).error(function(data) {
-        deferred.reject(data);
+      }).error(function(data, status, headers, config) {
+        deferred.reject([config.method, config.url, "returned", status].join(" "));
       });
       return deferred.promise;
+    };
+
+    return service;
+  })
+  .factory('wErrors', function() {
+    var service = {};
+    var _errors = [];
+    service.addError = function(error) {
+      // look for this error message
+      var result = $.grep(_errors, function(e) {
+        return e.message === error.toString();
+      });
+      if (result.length === 0) { // add the error to the list
+        _errors.push({
+          message: error.toString(),
+          count: 1
+        });
+      } else { // increment the count
+        result[0].count++;
+      }
+    };
+
+    service.clearErrorMessage = function(index) {
+      _errors.splice(index, 1);
+    };
+
+    service.getErrors = function() {
+      return _errors;
     };
 
     return service;
