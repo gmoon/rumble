@@ -58,13 +58,13 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       if (angular.isDefined(stop)) {
         return;
       }
-        try {
-          $scope.battle.contestants.forEach(function(i) {
-            $("#" + i.id)[0].contentWindow.location.reload();
-          });
-        } catch (error) {
-          wErrors.addError(error);
-        }
+      try {
+        $scope.battle.contestants.forEach(function(i) {
+          $("#" + i.id)[0].contentWindow.location.reload();
+        });
+      } catch (error) {
+        wErrors.addError(error);
+      }
       stop = $interval(function() {
         try {
           $scope.battle.contestants.forEach(function(i) {
@@ -103,7 +103,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
 
     $scope.resetFight = function() {
       $scope.pctSlower = 0;
-      $scope.stats = {};
+      $scope.stats = wMetrics.clearStats();
       $scope.battle.contestants.forEach(function(i) {
         $scope.stats[i.id] = wMetrics.initMetrics();
       });
@@ -216,6 +216,10 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       return _visibleMetrics;
     };
     service.getStats = function() {
+      return _stats;
+    };
+    service.clearStats = function() {
+      _stats = {};
       return _stats;
     };
     service.initMetrics = function() {
