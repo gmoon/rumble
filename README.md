@@ -4,7 +4,7 @@ Compare the performance of loading web pages from a browser using the HTML5 Reso
 ## Demo
 Here is a [demo](http://gmoon.github.io/webperf/webperf.html?config=https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json) comparing two [TodoMVC](http://todomvc.com/) projects, using a configuration file stored in my public dropbox folder:
 
-http://gmoon.github.io/webperf/webperf.html?config=https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json
+https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json
 
 ## Quick start
 In a folder that is served by your web server of choice:
@@ -12,6 +12,7 @@ In a folder that is served by your web server of choice:
 ```curl -O https://raw.githubusercontent.com/gmoon/webperf/master/dist/standalone/webperf.html```
 
 Then browse to:
-```http://mydomain/myfolder/webperf.html?config=myurl```
+```http://mydomain/myfolder/webperf.html?config=myurl
+```
 
 ## Use Cases
