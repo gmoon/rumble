@@ -12,6 +12,7 @@ In a folder that is served by your web server of choice:
 ```curl -O https://raw.githubusercontent.com/gmoon/webperf/master/dist/standalone/webperf.html```
 
 Then browse to:
+
 ```http://mydomain/myfolder/webperf.html?config=myurl
 ```
 
