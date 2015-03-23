@@ -6,6 +6,8 @@ Here is a [demo](http://gmoon.github.io/webperf/webperf.html?config=https://dl.d
 
 https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json
 
+The pages reload automatically every 10 seconds and the timing statistics are updated.
+
 ## Quick start
 In a folder that is served by your web server of choice:
 
