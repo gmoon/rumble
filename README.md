@@ -13,7 +13,8 @@ In a folder that is served by your web server of choice:
 
 Then browse to:
 
-```http://mydomain/myfolder/webperf.html?config=myurl
+```
+http://mydomain/myfolder/webperf.html?config=myurl
 ```
 
 ## Use Cases
