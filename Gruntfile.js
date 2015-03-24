@@ -26,13 +26,13 @@ module.exports = function(grunt) {
         }]
       },
       cdn: {
-        src: 'dist/webperf.html',
-        dest: 'dist/standalone/webperf.html',
+        src: 'dist/rumble.html',
+        dest: 'dist/standalone/rumble.html',
         options: {
-          // Read webperf.html and replace local script and link sources with their CDN equivalents.
+          // Read rumble.html and replace local script and link sources with their CDN equivalents.
           // These are defined in the project.json file (vendor property)
           process: function(content) {
-            grunt.log.write("\nCreating dist/standalone/webperf.html with CDN info from package.json vendor data\n");
+            grunt.log.write("\nCreating dist/standalone/rumble.html with CDN info from package.json vendor data\n");
             // loop through each vendor library in package.json
             grunt.config.get('pkg').vendor.map(function(vendor) {
               var from = '(?:src|href)="(.*' + vendor.lib + '.*)"';

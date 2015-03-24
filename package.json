@@ -1,5 +1,5 @@
 {
-  "name": "webperf",
+  "name": "rumble",
   "version": "1.0.0",
   "homepage": "https://github.com/gmoon/epicbattles",
   "author": {
@@ -37,9 +37,9 @@
       "cdn": "//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"
     },
     {
-      "lib": "js/webperf",
+      "lib": "js/rumble",
       "version": "1.0.0",
-      "cdn": "//gmoon.github.io/webperf/js/webperf.js"
+      "cdn": "//gmoon.github.io/rumble/js/rumble.js"
     }
   ],
   "engines": {
