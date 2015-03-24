@@ -8,6 +8,9 @@ As a dev, tester, product manager, or consumer, maybe you want something that is
 Just put a JSON configuration file somewhere that is accessible via the web (I use my Dropbox public folder), host a single HTML page, and fire it up in a [supported browser](http://caniuse.com/#feat=resource-timing).  No server, no database, no problem.
 
 ## Demo
+
+** not mobile optimized (lame, I know) **
+
 Here is a [demo](http://gmoon.github.io/rumble/rumble.html?config=https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json) comparing two [TodoMVC](http://todomvc.com/) projects, using a configuration file stored in my public dropbox folder:
 
 https://dl.dropboxusercontent.com/u/46275388/TodoMvcContestants.json
