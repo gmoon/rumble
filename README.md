@@ -5,7 +5,7 @@ To help understand performance, modern browsers provide a [Resource Timing API](
 
 As a dev, tester, product manager, or consumer, maybe you want something that is minimal, elegant, and still gets the job done.  Rumble is an attempt to strike that balance.
 
-Host a single HTML page, put a JSON configuration file somewhere on the web (I use my Dropbox public folder), and fire it up in a [supported browser](http://caniuse.com/#feat=resource-timing).  No server, backend, no database, no subscription, no problem.
+Host a single HTML page, put a JSON configuration file somewhere on the web (I use my Dropbox public folder), and fire it up in a [supported browser](http://caniuse.com/#feat=resource-timing).  No server, no backend, no database, no subscription, no problem.
 
 ## Demo
 
