@@ -5,6 +5,9 @@
   "author": {
     "name": "George Moon"
   },
+  "scripts": {
+    "test": "grunt test"
+  },
   "licenses": [
     {
       "type": "Apache 2.0"

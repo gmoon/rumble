@@ -1,5 +1,5 @@
-/*! rumble - v1.0.0 - 2015-03-23
-* https://github.com/gmoon/epicbattles
+/*! rumble - v1.0.0 - 2015-03-24
+* https://github.com/gmoon/rumble
 * Copyright (c) 2015 George Moon; Licensed Apache 2.0 */
 var documentDomainError;
 
@@ -47,8 +47,9 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     var stop;
 
     $scope.onIframeLoad = function(event) {
+
       wMetrics.processIframeLoad(event.currentTarget.id, event.currentTarget, $scope.battle.left.id, $scope.battle.right.id);
-      if ($scope.stats[$scope.battle.left.id].total.count === $scope.stats[$scope.battle.left.id].total.count) {
+      if ($scope.stats[$scope.battle.left.id].total.count === $scope.stats[$scope.battle.right.id].total.count) {
         $scope.recalcPercentage();
       }
     };
@@ -58,12 +59,17 @@ angular.module('webPerformanceApp', ['ngSanitize'])
       if (angular.isDefined(stop)) {
         return;
       }
+      // // Don't start a fight if we don't have a valid config
+      // if (!$scope.validConfig) {
+      //   return;
+      // }
       try {
         $scope.battle.contestants.forEach(function(i) {
           $("#" + i.id)[0].contentWindow.location.reload();
         });
       } catch (error) {
         wErrors.addError(error);
+        console.log(error);
       }
       stop = $interval(function() {
         try {
@@ -72,6 +78,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
           });
         } catch (error) {
           wErrors.addError(error);
+          console.log(error);
         }
       }, $scope.battle.samplingInterval);
     };
@@ -121,6 +128,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
     // register 
     if (angular.isDefined(documentDomainError)) {
       wErrors.addError(documentDomainError);
+      console.log(documentDomainError);
     }
 
     webPerfConfig.getConfig()
@@ -132,6 +140,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
           });
           $scope.battle.left  = $scope.battle.contestants[0];
           $scope.battle.right = $scope.battle.contestants[1];
+          $scope.validConfig = 1;
           $scope.resetFight();
           $scope.fight();
           //$("#splash").toggleClass("hide");
@@ -139,6 +148,7 @@ angular.module('webPerformanceApp', ['ngSanitize'])
         }, 
         function(data) {
           wErrors.addError(data);
+          console.log(data);
         }
       );
   }])
